@@ -1,0 +1,24 @@
+{
+  "name": "guru-ai-platform",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm --prefix frontend run dev\" \"npm --prefix backend run dev\"",
+    "dev:web": "npm --prefix frontend run dev",
+    "dev:api": "npm --prefix backend run dev",
+    "dev:ai": "uvicorn ai-service.main:app --reload --port 8000",
+    "build:web": "npm --prefix frontend run build",
+    "build:api": "npm --prefix backend run build",
+    "typecheck:api": "npm --prefix backend run typecheck",
+    "db:migrate": "psql $DATABASE_URL -f packages/database/migrations/001_init.sql",
+    "db:seed": "psql $DATABASE_URL -f packages/database/seeds/dev.sql",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down -v"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

@@ -1,0 +1,1 @@
+-- Dev seed data lives in db/schema.sql sample section for now.

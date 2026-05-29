@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+  <body style="font-family: Arial, sans-serif; background:#f8fafc; color:#111827; padding:24px;">
+    <div style="max-width:640px;margin:auto;background:white;border:1px solid #e5e7eb;border-radius:8px;padding:24px;">
+      <h2>Weekly Progress Report: {{childName}}</h2>
+      <p><strong>Current Subject:</strong> {{currentSubject}}</p>
+      <p><strong>Study Hours:</strong> {{weeklyHours}} / {{targetHours}}</p>
+      <p><strong>Attendance Streak:</strong> {{streak}} days</p>
+      <p><strong>CGPA:</strong> {{cgpa}} ({{trend}})</p>
+      <h3>Completed This Week</h3>
+      <ul>{{topicsCompleted}}</ul>
+      <h3>AI Suggestions</h3>
+      <ul>{{suggestions}}</ul>
+      <p style="color:#6b7280;font-size:12px;">AI mentor chat messages are private and not included.</p>
+    </div>
+  </body>
+</html>

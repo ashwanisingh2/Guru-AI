@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "GURU",
+    "slug": "guru-ai-mobile",
+    "scheme": "guru",
+    "plugins": ["expo-notifications", "expo-local-authentication"],
+    "ios": { "supportsTablet": true },
+    "android": { "package": "com.guruai.mobile" }
+  }
+}
