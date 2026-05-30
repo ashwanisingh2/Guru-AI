@@ -113,10 +113,10 @@ export async function generateExplanation(input: GenerateInput) {
   const cacheKey = buildCacheKey(input, profile);
 
   const cached = await pool.query(
-    "SELECT response, quality, review_status FROM ai_generated_explanations WHERE cache_key = $1",
+    "SELECT id, response, quality, review_status FROM ai_generated_explanations WHERE cache_key = $1",
     [cacheKey]
   ).catch(() => ({ rows: [] }));
-  if (cached.rows[0]) return { ...cached.rows[0].response, cached: true, quality: cached.rows[0].quality, reviewStatus: cached.rows[0].review_status };
+  if (cached.rows[0]) return { ...cached.rows[0].response, cached: true, quality: cached.rows[0].quality, reviewStatus: cached.rows[0].review_status, explanationId: cached.rows[0].id };
 
   let response = fallbackContent(input, profile);
   if (process.env.OPENAI_API_KEY) {
@@ -132,14 +132,27 @@ export async function generateExplanation(input: GenerateInput) {
   const quality = qualityCheck(response);
   const reviewStatus = quality.needsHumanReview ? "needs_human_review" : "auto_approved";
 
-  await pool.query(
+  const stored = await pool.query(
     `
     INSERT INTO ai_generated_explanations(cache_key, user_id, topic, struggling_with, format, profile_snapshot, response, quality, review_status)
     VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)
     ON CONFLICT(cache_key) DO UPDATE SET updated_at = NOW()
+    RETURNING id
     `,
     [cacheKey, input.userId, input.topic, input.strugglingWith, input.format, profile, response, quality, reviewStatus]
-  ).catch(() => undefined);
+  ).catch(() => ({ rows: [] }));
 
-  return { ...response, cached: false, quality, reviewStatus };
+  const explanationId = stored.rows[0]?.id;
+  return { ...response, cached: false, quality, reviewStatus, explanationId };
 }
+
+export async function saveExplanationFeedback(input: { explanationId: string; userId: string; rating?: number; comment?: string }) {
+  await pool.query(
+    `
+    INSERT INTO ai_explanation_feedback(explanation_id, user_id, rating, comment)
+    VALUES($1, $2, $3, $4)
+    `,
+    [input.explanationId, input.userId, input.rating || null, input.comment || null]
+  ).catch(() => undefined);
+}
+

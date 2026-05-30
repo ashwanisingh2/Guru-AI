@@ -152,10 +152,27 @@ app.post("/api/payments/checkout", (req, res) => {
 app.get("/api/admin/reviews/ai-content", async (_req, res) => {
   const db = await sharedPool.query(
     `
-    SELECT id, topic, struggling_with, response, quality, review_status, created_at
-    FROM ai_generated_explanations
-    WHERE review_status = 'needs_human_review'
-    ORDER BY created_at DESC
+    SELECT
+      a.id,
+      a.topic,
+      a.struggling_with,
+      a.response,
+      a.quality,
+      a.review_status,
+      a.created_at,
+      COALESCE(ROUND(AVG(f.rating)::numeric, 2), 0) AS avg_rating,
+      COUNT(f.*) AS feedback_count,
+      COALESCE(JSONB_AGG(JSONB_BUILD_OBJECT(
+        'rating', f.rating,
+        'comment', f.comment,
+        'userId', f.user_id,
+        'createdAt', f.created_at
+      ) ORDER BY f.created_at DESC) FILTER (WHERE f.id IS NOT NULL), '[]') AS feedback
+    FROM ai_generated_explanations a
+    LEFT JOIN ai_explanation_feedback f ON f.explanation_id = a.id
+    WHERE a.review_status = 'needs_human_review'
+    GROUP BY a.id
+    ORDER BY a.created_at DESC
     LIMIT 20
     `
   ).catch(() => ({ rows: [] }));
@@ -169,6 +186,9 @@ app.get("/api/admin/reviews/ai-content", async (_req, res) => {
         review_status: "needs_human_review",
         quality: { score: 76, needsHumanReview: true },
         response: { explanation: "Demo explanation pending review." },
+        avg_rating: 0,
+        feedback_count: 0,
+        feedback: [],
         created_at: new Date().toISOString()
       }
     ]

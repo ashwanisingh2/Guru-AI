@@ -16,10 +16,12 @@ AI learning platform scaffold with web, API, AI mentor, mobile, database, and co
 npm install
 npm --prefix frontend install
 npm --prefix backend install
+npm --prefix mobile install
+npm --prefix apps/code-sandbox install
 pip install -r ai-service/requirements.txt
 ```
 
-Copy `.env.example` to `.env` and set real secrets:
+Copy `.env.example` to `.env` and set real secrets before starting services:
 
 ```bash
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/guru_ai
@@ -33,8 +35,11 @@ DISABLE_AUTH=true
 
 ```bash
 npm run dev
+npm --prefix backend run dev
 npm run dev:ai
 ```
+
+Note: `npm run dev` starts the frontend and backend together. The AI service must be started separately with `npm run dev:ai` or via Docker Compose.
 
 Or run all infra with Docker:
 
@@ -60,6 +65,21 @@ POST /api/ai/generate-explanation
   "userId": "rahul123",
   "strugglingWith": "base case concept",
   "format": "mixed"
+}
+```
+
+Feedback on generated explanations is now supported via:
+
+```http
+POST /api/ai/feedback
+```
+
+```json
+{
+  "explanationId": "<explanation-id>",
+  "userId": "rahul123",
+  "rating": 4,
+  "comment": "Clear explanation, please add more examples."
 }
 ```
 

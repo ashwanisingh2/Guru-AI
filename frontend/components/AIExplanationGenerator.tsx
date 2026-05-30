@@ -12,12 +12,17 @@ type Explanation = {
   estimatedTime: string;
   cached?: boolean;
   reviewStatus?: string;
+  explanationId?: string;
 };
 
 export function AIExplanationGenerator({ userId, topic }: { userId: string; topic: string }) {
   const [strugglingWith, setStrugglingWith] = useState("base case concept");
   const [result, setResult] = useState<Explanation | null>(null);
   const [loading, setLoading] = useState(false);
+  const [feedbackComment, setFeedbackComment] = useState("");
+  const [feedbackRating, setFeedbackRating] = useState<1 | 2 | 3 | 4 | 5>(5);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
 
   async function generate() {
     setLoading(true);
@@ -68,6 +73,53 @@ export function AIExplanationGenerator({ userId, topic }: { userId: string; topi
           </div>
           <p className="text-[#c7d2fe]">{result.realWorldExample}</p>
           <div className="font-mono text-xs text-[#6b7280]">{result.estimatedTime} · {result.cached ? "cached" : "new"} · {result.reviewStatus}</div>
+
+          <div className="mt-4 rounded border border-[#1f2937] bg-[#111827] p-4">
+            <div className="mb-2 text-sm font-semibold text-[#4ade80]">Feedback</div>
+            <div className="flex items-center gap-2 text-sm">
+              <span>Rating:</span>
+              {[1, 2, 3, 4, 5].map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => { setFeedbackRating(value as 1 | 2 | 3 | 4 | 5); setFeedbackSubmitted(false); }}
+                  className={`rounded px-2 py-1 ${feedbackRating === value ? "bg-[#4ade80] text-[#052e16]" : "bg-[#111827] text-[#c7d2fe]"}`}
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+            <textarea
+              value={feedbackComment}
+              onChange={(e) => { setFeedbackComment(e.target.value); setFeedbackSubmitted(false); }}
+              rows={3}
+              className="mt-3 w-full rounded border border-[#1f2937] bg-[#0b0f19] px-3 py-2 text-sm outline-none"
+              placeholder="What helped you? What can improve?"
+            />
+            <button
+              disabled={feedbackLoading || !result?.explanationId}
+              onClick={async () => {
+                if (!result?.explanationId) return;
+                setFeedbackLoading(true);
+                try {
+                  await api("/api/ai/feedback", {
+                    method: "POST",
+                    body: { explanationId: result.explanationId, userId, rating: feedbackRating, comment: feedbackComment }
+                  });
+                  setFeedbackSubmitted(true);
+                  setFeedbackComment("");
+                  trackEvent("ai_explanation_feedback_submitted", "ai_explanation", { explanationId: result.explanationId, rating: feedbackRating });
+                } catch {
+                  // ignore
+                } finally {
+                  setFeedbackLoading(false);
+                }
+              }}
+              className="mt-3 rounded bg-[#2563eb] px-4 py-2 font-mono text-sm font-bold text-white disabled:opacity-50"
+            >
+              {feedbackSubmitted ? "Feedback submitted" : "Submit feedback"}
+            </button>
+          </div>
         </div>
       )}
     </section>

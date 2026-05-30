@@ -10,6 +10,9 @@ type ReviewItem = {
   review_status: string;
   quality: { score?: number };
   response: { explanation?: string };
+  avg_rating?: number;
+  feedback_count?: number;
+  feedback?: { rating?: number; comment?: string; userId?: string; createdAt?: string }[];
 };
 
 export default function AIReviewsPage() {
@@ -37,7 +40,12 @@ export default function AIReviewsPage() {
               <div className="flex flex-wrap justify-between gap-3">
                 <div>
                   <div className="font-semibold">{item.topic}</div>
-                  <div className="text-sm text-[#6b7280]">{item.struggling_with} · score {item.quality?.score ?? "n/a"} · {item.review_status}</div>
+                  <div className="text-sm text-[#6b7280]">
+                    {item.struggling_with} · score {item.quality?.score ?? "n/a"} · {item.review_status}
+                  </div>
+                  <div className="text-sm text-[#a5b4fc]">
+                    Feedback: {item.feedback_count ?? 0} • Avg rating: {item.avg_rating ?? 0}
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => update(item.id, "approved")} className="rounded bg-[#4ade80] px-3 py-2 text-sm text-[#052e16]">Approve</button>
@@ -45,6 +53,22 @@ export default function AIReviewsPage() {
                 </div>
               </div>
               <p className="mt-4 text-sm leading-6 text-[#d1d5db]">{item.response?.explanation}</p>
+              {item.feedback?.length ? (
+                <div className="mt-4 rounded border border-[#1f2937] bg-[#0b1220] p-4">
+                  <div className="mb-2 text-sm font-semibold text-[#4ade80]">User feedback</div>
+                  <ul className="space-y-3 text-sm text-[#c7d2fe]">
+                    {item.feedback.slice(0, 3).map((fb, index) => (
+                      <li key={`${item.id}-fb-${index}`}>
+                        <div className="flex items-center gap-2 text-xs text-[#6b7280]">
+                          <span>Rating: {fb.rating ?? "—"}</span>
+                          <span>{fb.userId ? `by ${fb.userId}` : ""}</span>
+                        </div>
+                        <div>{fb.comment || "No comment"}</div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
             </article>
           ))}
         </div>

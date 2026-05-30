@@ -2,6 +2,9 @@
   "name": "guru-ai-platform",
   "private": true,
   "workspaces": [
+    "frontend",
+    "backend",
+    "mobile",
     "apps/*",
     "packages/*"
   ],
