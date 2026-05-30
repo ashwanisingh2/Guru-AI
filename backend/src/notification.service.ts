@@ -1,5 +1,4 @@
 import sendgrid from "@sendgrid/mail";
-import admin from "firebase-admin";
 import type { WebSocketServer } from "ws";
 import { pool } from "./db";
 
@@ -30,12 +29,29 @@ type DeliveryPrefs = {
   inAppOnline?: boolean;
 };
 
+type FirebaseAdmin = {
+  apps: unknown[];
+  initializeApp: (options: { projectId: string }) => void;
+  messaging: () => { send: (message: unknown) => Promise<unknown> };
+};
+
+let firebaseAdmin: FirebaseAdmin | null | undefined;
+
+async function getFirebaseAdmin() {
+  if (firebaseAdmin !== undefined) return firebaseAdmin;
+  try {
+    const packageName = "firebase-admin";
+    const mod = await import(packageName);
+    firebaseAdmin = (mod.default || mod) as FirebaseAdmin;
+  } catch {
+    firebaseAdmin = null;
+  }
+  return firebaseAdmin;
+}
+
 export class NotificationService {
   constructor(private wss?: WebSocketServer) {
     if (process.env.SENDGRID_API_KEY) sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
-    if (!admin.apps.length && process.env.FIREBASE_PROJECT_ID) {
-      admin.initializeApp({ projectId: process.env.FIREBASE_PROJECT_ID });
-    }
   }
 
   generateMessage(payload: NotificationPayload) {
@@ -104,7 +120,10 @@ export class NotificationService {
   }
 
   async sendPush(token: string, title: string, body: string, deepLink?: string) {
-    if (!admin.apps.length) return;
+    if (!process.env.FIREBASE_PROJECT_ID) return;
+    const admin = await getFirebaseAdmin();
+    if (!admin) return;
+    if (!admin.apps.length) admin.initializeApp({ projectId: process.env.FIREBASE_PROJECT_ID });
     await admin.messaging().send({
       token,
       notification: { title, body },

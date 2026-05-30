@@ -13,9 +13,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-
 class ChatRequest(BaseModel):
     message: str
     language: str = "Hinglish"
@@ -29,9 +26,11 @@ def health():
 
 @app.post("/chat")
 def chat(req: ChatRequest):
-    if not os.getenv("OPENAI_API_KEY"):
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
         return {"reply": "OpenAI key missing. .env me OPENAI_API_KEY add karo."}
 
+    client = OpenAI(api_key=api_key)
     response = client.chat.completions.create(
         model="gpt-4.1-mini",
         messages=[

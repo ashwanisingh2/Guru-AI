@@ -7,6 +7,8 @@ import { useEffect, useMemo, useState } from "react";
 import ReactFlow, { Background, Controls, Edge, Handle, Node, Position } from "reactflow";
 import { API_URL } from "@/lib/api";
 
+const WS_URL = API_URL.replace(/^http/, "ws");
+
 type Subject = {
   id: string;
   label: string;
@@ -126,7 +128,7 @@ export function SubjectTopicMap() {
   }, [selectedSubject]);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:4000/progress");
+    const ws = new WebSocket(`${WS_URL}/progress`);
     ws.onmessage = (event) => {
       const update = JSON.parse(event.data) as { topicId: string; score: number; complete: boolean };
       setTopics((current) =>

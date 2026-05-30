@@ -1,5 +1,14 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-export const AI_URL = process.env.NEXT_PUBLIC_AI_URL || "http://localhost:8000";
+function resolveLocalUrl(value: string) {
+  if (typeof window === "undefined") return value;
+  const url = new URL(value);
+  if (["localhost", "127.0.0.1"].includes(url.hostname) && !["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+    url.hostname = window.location.hostname;
+  }
+  return url.toString().replace(/\/$/, "");
+}
+
+export const API_URL = resolveLocalUrl(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000");
+export const AI_URL = resolveLocalUrl(process.env.NEXT_PUBLIC_AI_URL || "http://localhost:8000");
 
 type ApiOptions = Omit<RequestInit, "body"> & {
   token?: string;

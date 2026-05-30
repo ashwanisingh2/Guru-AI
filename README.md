@@ -31,6 +31,14 @@ CORS_ORIGINS=http://localhost:3000
 DISABLE_AUTH=true
 ```
 
+For another device on the same Wi-Fi/LAN, use your computer IP:
+
+```bash
+NEXT_PUBLIC_API_URL=http://YOUR_PC_IP:4000
+CORS_ORIGINS=http://localhost:3000,http://YOUR_PC_IP:3000
+HOST=0.0.0.0
+```
+
 ## Run
 
 ```bash
@@ -40,6 +48,12 @@ npm run dev:ai
 ```
 
 Note: `npm run dev` starts the frontend and backend together. The AI service must be started separately with `npm run dev:ai` or via Docker Compose.
+
+On Windows, start database/Redis first:
+
+```bash
+npm run dev:infra
+```
 
 Or run all infra with Docker:
 

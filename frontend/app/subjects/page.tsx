@@ -10,10 +10,10 @@ type Subject = {
 export default async function SubjectsPage({
   searchParams
 }: {
-  searchParams: { language?: string };
+  searchParams: Promise<{ language?: string }>;
 }) {
   const subjects = await api<Subject[]>("/api/subjects");
-  const language = searchParams.language || "hinglish";
+  const { language = "hinglish" } = await searchParams;
 
   return (
     <main className="mx-auto min-h-screen max-w-3xl bg-[#0a0c14] px-5 py-10 text-[#f9fafb]">

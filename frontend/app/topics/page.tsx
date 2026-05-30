@@ -13,10 +13,11 @@ type Topic = {
 export default async function TopicsPage({
   searchParams
 }: {
-  searchParams: { subject?: string; language?: string };
+  searchParams: Promise<{ subject?: string; language?: string }>;
 }) {
-  const subject = searchParams.subject || "web-development";
-  const language = searchParams.language || "hinglish";
+  const params = await searchParams;
+  const subject = params.subject || "web-development";
+  const language = params.language || "hinglish";
   const topics = await api<Topic[]>(`/api/subjects/${subject}/topics?userId=demo-user`);
 
   return (
