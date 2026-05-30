@@ -9,10 +9,15 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently \"npm --prefix frontend run dev\" \"npm --prefix backend run dev\"",
+    "clean": "npm run clean:web && npm run clean:api",
+    "clean:web": "rimraf frontend/.next frontend/node_modules",
+    "clean:api": "rimraf backend/node_modules",
+    "kill": "taskkill /F /IM node.exe /T || exit 0",
+    "fix": "npm run kill && npm run clean && npm install --legacy-peer-deps",
+    "dev": "concurrently -k \"npm run dev:web\" \"npm run dev:api\" \"npm run dev:ai\"",
     "dev:web": "npm --prefix frontend run dev",
     "dev:api": "npm --prefix backend run dev",
-    "dev:ai": "uvicorn ai-service.main:app --reload --port 8000",
+    "dev:ai": "cd ai-service; .\\venv\\Scripts\\python.exe -m uvicorn main:app --reload --port 8000",
     "build": "npm run build:web && npm run build:api",
     "build:web": "npm --prefix frontend run build",
     "build:api": "npm --prefix backend run build",
@@ -24,6 +29,6 @@
     "docker:down": "docker compose down -v"
   },
   "devDependencies": {
-    "concurrently": "^9.0.0"
+    "concurrently": "^9.2.1"
   }
 }
